@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>MongoDB High Availability on AWS | 健忘 x 工程師</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <meta name="keywords" content="mongodbmongodb-hareplica-set" />
+  
+  
+  
+  
+  <meta name="description" content="MongoDB-HAArchitecture1234567891011121314digraph hierarchy &amp;#123;    nodesep= 0.15    node [color=black,fontname=Arial,shape=box]     edge [color=black]    &amp;quot;外部連線&amp;quot; -&amp;gt; &amp;quot;Linux Bastion (">
+<meta name="keywords" content="mongodb,mongodb-ha,replica-set">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MongoDB High Availability on AWS">
+<meta property="og:url" content="http://yoursite.com/2017/06/04/Mongodb-HA/index.html">
+<meta property="og:site_name" content="健忘 x 工程師">
+<meta property="og:description" content="MongoDB-HAArchitecture1234567891011121314digraph hierarchy &amp;#123;    nodesep= 0.15    node [color=black,fontname=Arial,shape=box]     edge [color=black]    &amp;quot;外部連線&amp;quot; -&amp;gt; &amp;quot;Linux Bastion (">
+<meta property="og:image" content="https://i.imgur.com/voiIjgQ.png">
+<meta property="og:image" content="https://i.imgur.com/SoaAFVA.png">
+<meta property="og:image" content="https://i.imgur.com/aelkWhQ.png">
+<meta property="og:updated_time" content="2017-06-06T10:20:14.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MongoDB High Availability on AWS">
+<meta name="twitter:description" content="MongoDB-HAArchitecture1234567891011121314digraph hierarchy &amp;#123;    nodesep= 0.15    node [color=black,fontname=Arial,shape=box]     edge [color=black]    &amp;quot;外部連線&amp;quot; -&amp;gt; &amp;quot;Linux Bastion (">
+<meta name="twitter:image" content="https://i.imgur.com/voiIjgQ.png">
+  
+    <link rel="alternate" href="/atom.xml" title="健忘 x 工程師" type="application/atom+xml">
+  
+  <link rel="icon" href="/css/images/favicon.ico">
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans|Montserrat:700" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic" rel="stylesheet" type="text/css">
+  <link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+  <style type="text/css">
+    @font-face{font-family:futura-pt;src:url(https://use.typekit.net/af/9749f0/00000000000000000001008f/27/l?subset_id=2&fvd=n5) format("woff2");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt;src:url(https://use.typekit.net/af/90cf9f/000000000000000000010091/27/l?subset_id=2&fvd=n7) format("woff2");font-weight:500;font-style:normal;}
+    @font-face{font-family:futura-pt;src:url(https://use.typekit.net/af/8a5494/000000000000000000013365/27/l?subset_id=2&fvd=n4) format("woff2");font-weight:lighter;font-style:normal;}
+    @font-face{font-family:futura-pt;src:url(https://use.typekit.net/af/d337d8/000000000000000000010095/27/l?subset_id=2&fvd=i4) format("woff2");font-weight:400;font-style:italic;}</style>
+    
+  <link rel="stylesheet" id="athemes-headings-fonts-css" href="//fonts.googleapis.com/css?family=Yanone+Kaffeesatz%3A200%2C300%2C400%2C700&amp;ver=4.6.1" type="text/css" media="all">
+
+  <link rel="stylesheet" id="athemes-headings-fonts-css" href="//fonts.googleapis.com/css?family=Oswald%3A300%2C400%2C700&amp;ver=4.6.1" type="text/css" media="all">
+  <link rel="stylesheet" href="/css/style.css">
+
+  <script src="/js/jquery-3.1.1.min.js"></script>
+
+  <!-- Bootstrap core CSS -->
+  <link rel="stylesheet" href="/css/bootstrap.css" >
+  <link rel="stylesheet" href="/css/fashion.css" >
+  <link rel="stylesheet" href="/css/glyphs.css" >
+
+</head>
+
+
+
+  <body data-spy="scroll" data-target="#toc" data-offset="50">
+
+
+  
+
+
+<header id="allheader" class="site-header" role="banner" 
+   >
+  <div class="clearfix container">
+      <div class="site-branding">
+
+          <h1 class="site-title">
+            
+              <a href="/" title="健忘 x 工程師" rel="home"> 健忘 x 工程師 </a>
+            
+          </h1>
+          
+          
+            
+          <nav id="main-navigation" class="main-navigation" role="navigation">
+            <a class="nav-open">Menu</a>
+            <a class="nav-close">Close</a>
+
+            <div class="clearfix sf-menu">
+              <ul id="main-nav" class="menu sf-js-enabled sf-arrows"  style="touch-action: pan-y;">
+                    
+                      <li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1663"> <a class="" href="/">Home</a> </li>
+                    
+                      <li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1663"> <a class="" href="/archives">Archives</a> </li>
+                    
+                      <li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1663"> <a class="" href="/categories">Categories</a> </li>
+                    
+                      <li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1663"> <a class="" href="/tags">Tags</a> </li>
+                    
+                      <li class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-1663"> <a class="" href="/about">About</a> </li>
+                    
+              </ul>
+            </div>
+          </nav>
+
+      </div>
+  </div>
+</header>
+
+
+  <div id="container">
+    <div id="wrap">
+            
+      <div id="content" class="outer">
+        
+          <section id="main" style="float:none;"><article id="post-Mongodb-HA" style="width: 66%; float:left;" class="article article-type-post" itemscope itemprop="blogPost" >
+  <div id="articleInner" class="clearfix post-1016 post type-post status-publish format-standard has-post-thumbnail hentry category-template-2 category-uncategorized tag-codex tag-edge-case tag-featured-image tag-image tag-template">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="thumb" class="article-title" itemprop="name">
+      MongoDB High Availability on AWS
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-meta">
+      
+	<a href="/2017/06/04/Mongodb-HA/" class="article-date">
+	  <time datetime="2017-06-04T03:12:03.000Z" itemprop="datePublished">June 4, 2017</time>
+	</a>
+
+      
+	<span class="ico-folder"></span>
+    <a class="article-category-link" href="/categories/MongoDB/">MongoDB</a>
+ 
+      
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="MongoDB-HA"><a href="#MongoDB-HA" class="headerlink" title="MongoDB-HA"></a>MongoDB-HA</h1><h2 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">digraph hierarchy &#123;</div><div class="line">    nodesep= 0.15</div><div class="line">    node [color=black,fontname=Arial,shape=box] </div><div class="line">    edge [color=black]</div><div class="line">    &quot;外部連線&quot; -&gt; &quot;Linux Bastion (Loopback)&quot;</div><div class="line">    &quot;Linux Bastion (Loopback)&quot; -&gt; &#123;&quot;Primary&quot;&#125; [label=&quot; write data&quot;]</div><div class="line">    &quot;Linux Bastion (Loopback)&quot; -&gt; &#123;&quot;Secondary node0&quot;&#125; [label=&quot; read data&quot;]</div><div class="line">    </div><div class="line">    subgraph cluster_mongo&#123;</div><div class="line">        label = &quot;MONGO - HA&quot;</div><div class="line">        Primary -&gt; &quot;Secondary node0&quot; [label=replication]</div><div class="line">        Primary -&gt; &quot;Secondary node1&quot; []</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<ul>
+<li>建置MogoDB Relica Set，database彼此透過hearbeating確認存活，並且Secondary定期去同步Primary的寫入資料 (根據oplog)。</li>
+<li>Linux Bastion為入口，在Primary上進行資料寫入，在Secondary上進行資料讀取。</li>
+</ul>
+<a id="more"></a>
+<h2 id="Deployment-Mongo-HA-on-AWS"><a href="#Deployment-Mongo-HA-on-AWS" class="headerlink" title="Deployment Mongo-HA on AWS"></a>Deployment Mongo-HA on AWS</h2><h3 id="1-建置教學"><a href="#1-建置教學" class="headerlink" title="1. 建置教學"></a>1. 建置教學</h3><p>這篇 <a href="http://docs.aws.amazon.com/zh_cn/quickstart/latest/mongodb/step2.html" target="_blank" rel="external"><strong>教學文章</strong></a> 說明了如何在AWS伺服器上建置mongoDB-HA，其中 <strong>紅色部分(Requires input)</strong> 需要額外手動填寫，其他就直接使用原本給定的預設值即可。</p>
+<ul>
+<li><strong>Virtual Private Cloud:</strong><ul>
+<li>VPC就是一個虛擬的區域網路，如果你打算讓其他Instance可以在區網內直接讀寫資料庫的資料，你就必須要選擇在同一個VPC。</li>
+<li>你也可以選擇開新的VPC，其他Instance可以利用Linux Bastion的入口來介接資料。</li>
+</ul>
+</li>
+<li><strong>MongoDB Database Configuration:</strong><ul>
+<li>ClusterReplicaSetCount -&gt; 1 or 3 (only primary/ mongo-ha)，所以這邊我們要選擇3。</li>
+<li>MongoDBAdminPassword -&gt; mongo auth password, default username is “admin”。</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-建置完成"><a href="#2-建置完成" class="headerlink" title="2. 建置完成"></a>2. 建置完成</h3><p>進入AWS主控面板選到 <strong>Runing Instances</strong>，如果剛剛的配置都正確，此時可以看到建立的四個Instances <strong>(LinuxBastion, Mongo-Primary, Mongo-Secondary0, Mongo-Secondary1)</strong> 。</p>
+<p><img src="https://i.imgur.com/voiIjgQ.png" alt=""></p>
+<h3 id="3-如何使用"><a href="#3-如何使用" class="headerlink" title="3. 如何使用"></a>3. 如何使用</h3><p>從外部透過ssh連線到Linux Bastion，再連線到Relica-Set其中的機台上。透過下列指令我們可以看到Relica-Set的當前狀態。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">mongo</div><div class="line">use admin</div><div class="line">db.auth(&quot;admin&quot;, &quot;YourAdminPassword&quot;)</div><div class="line">rs.printReplicationInfo()</div><div class="line">rs.status()</div></pre></td></tr></table></figure></p>
+<p><strong>rs.status()的運行結果如下:</strong></p>
+<ul>
+<li>uptime: 開機運行時間</li>
+<li>optimeDate: <ul>
+<li>最後一次同步資料庫的時間點</li>
+<li>the Date of the last operation applied to this member of the replica set from the oplog.</li>
+</ul>
+</li>
+<li>lastHeartbeatRecv: 最後一次keepalive的時間點</li>
+<li>electionDate: 被推選為Primary的時間點</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">    <span class="string">"_id"</span> : 1,</div><div class="line">    <span class="string">"name"</span> : <span class="string">"10.0.56.121:27017"</span>,</div><div class="line">    <span class="string">"health"</span> : 1,</div><div class="line">    <span class="string">"state"</span> : 2,</div><div class="line">    <span class="string">"stateStr"</span> : <span class="string">"SECONDARY"</span>,</div><div class="line">    <span class="string">"uptime"</span> : 87039,</div><div class="line">    <span class="string">"optime"</span> : &#123;</div><div class="line">        <span class="string">"ts"</span> : Timestamp(1495608510, 3668),</div><div class="line">        <span class="string">"t"</span> : NumberLong(4)</div><div class="line">        &#125;,</div><div class="line">    <span class="string">"optimeDate"</span> : ISODate(<span class="string">"2017-05-24T06:48:30Z"</span>),</div><div class="line">    <span class="string">"syncingTo"</span> : <span class="string">"10.0.60.34:27017"</span>,</div><div class="line">    <span class="string">"configVersion"</span> : 1,</div><div class="line">    <span class="string">"self"</span> : <span class="literal">true</span></div><div class="line">&#125;,</div><div class="line">&#123;</div><div class="line">    <span class="string">"_id"</span> : 2,</div><div class="line">    <span class="string">"name"</span> : <span class="string">"10.0.60.34:27017"</span>,</div><div class="line">    <span class="string">"health"</span> : 1,</div><div class="line">    <span class="string">"state"</span> : 2,</div><div class="line">    <span class="string">"stateStr"</span> : <span class="string">"SECONDARY"</span>,</div><div class="line">    <span class="string">"uptime"</span> : 87038,</div><div class="line">    <span class="string">"optime"</span> : &#123;</div><div class="line">        <span class="string">"ts"</span> : Timestamp(1495608510, 3668),</div><div class="line">        <span class="string">"t"</span> : NumberLong(4)</div><div class="line">        &#125;,</div><div class="line">    <span class="string">"optimeDate"</span> : ISODate(<span class="string">"2017-05-24T06:48:30Z"</span>),</div><div class="line">    <span class="string">"lastHeartbeat"</span> : ISODate(<span class="string">"2017-05-25T02:23:57.291Z"</span>),</div><div class="line">    <span class="string">"lastHeartbeatRecv"</span> : ISODate(<span class="string">"2017-05-25T02:23:57.297Z"</span>),</div><div class="line">    <span class="string">"pingMs"</span> : NumberLong(0),</div><div class="line">    <span class="string">"syncingTo"</span> : <span class="string">"10.0.24.228:27017"</span>,</div><div class="line">    <span class="string">"configVersion"</span> : 1</div><div class="line">&#125;,</div><div class="line">&#123;</div><div class="line">    <span class="string">"_id"</span> : 3,</div><div class="line">    <span class="string">"name"</span> : <span class="string">"10.0.24.228:27017"</span>,</div><div class="line">    <span class="string">"health"</span> : 1,</div><div class="line">    <span class="string">"state"</span> : 1,</div><div class="line">    <span class="string">"stateStr"</span> : <span class="string">"PRIMARY"</span>,</div><div class="line">    <span class="string">"uptime"</span> : 87038,</div><div class="line">    <span class="string">"optime"</span> : &#123;</div><div class="line">        <span class="string">"ts"</span> : Timestamp(1495608510, 3668),</div><div class="line">        <span class="string">"t"</span> : NumberLong(4)</div><div class="line">        &#125;,</div><div class="line">    <span class="string">"optimeDate"</span> : ISODate(<span class="string">"2017-05-24T06:48:30Z"</span>),</div><div class="line">    <span class="string">"lastHeartbeat"</span> : ISODate(<span class="string">"2017-05-25T02:23:57.302Z"</span>),</div><div class="line">    <span class="string">"lastHeartbeatRecv"</span> : ISODate(<span class="string">"2017-05-25T02:23:57.296Z"</span>),</div><div class="line">    <span class="string">"pingMs"</span> : NumberLong(2),</div><div class="line">    <span class="string">"electionTime"</span> : Timestamp(1495592021, 1),</div><div class="line">    <span class="string">"electionDate"</span> : ISODate(<span class="string">"2017-05-24T02:13:41Z"</span>),</div><div class="line">    <span class="string">"configVersion"</span> : 1</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p><strong>使用者權限開通</strong>:<br><strong>use admin</strong> 和 <strong>db.getUsers()</strong> 我們可以看到在admin的資料庫裡面已經有了admin這個使用者。現在我們也要在其他資料庫建立對應的使用者。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">show dbs</div><div class="line">use dbname <span class="comment">#database name</span></div><div class="line"></div><div class="line"><span class="comment">#在當前資料庫建立使用者</span></div><div class="line">db.createUser( &#123;</div><div class="line">    user:<span class="string">"admin"</span>,</div><div class="line">    <span class="built_in">pwd</span>:<span class="string">"YourPass"</span>,</div><div class="line">    roles:</div><div class="line">        [ <span class="string">"readWrite"</span>,</div><div class="line">        &#123; role:<span class="string">"root"</span>, db:<span class="string">"admin"</span> &#125; ]</div><div class="line">&#125;)</div></pre></td></tr></table></figure></p>
+<p><strong>如何連線到 Relica-set</strong>:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#URI format for Single-node plan:</span></div><div class="line">mongodb://dbuser:dbpass@host:port/dbname</div><div class="line"><span class="comment">#URI format for Cluster plan:</span></div><div class="line">mongodb://dbuser:dbpass@host1:port1,host2:port2/dbname</div></pre></td></tr></table></figure></p>
+<p>這邊可以注意一下，在連線到Relica-Set的同時，可以針對讀寫的機制做一些設定。</p>
+<ul>
+<li><a href="https://docs.mongodb.com/manual/core/replica-set-write-concern/" target="_blank" rel="external"><strong>Write Concern for Replica Sets</strong></a></li>
+<li><a href="https://docs.mongodb.com/manual/core/read-preference/" target="_blank" rel="external"><strong>Read Preference</strong></a></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 我們可以將上面cluster連線的指令修改如下</span></div><div class="line">mongodb://host.example.com/?readPreference=secondary&amp;maxStalenessSeconds=120</div></pre></td></tr></table></figure>
+<p><strong>Loopback mongoDB connector:</strong><br>Edit <strong>server/datasources.json</strong> to set the MongoDB configs:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">&#123;</div><div class="line">  ...</div><div class="line">  <span class="comment"># previous</span></div><div class="line">  <span class="string">"db"</span>: &#123;</div><div class="line">    <span class="string">"host"</span>: <span class="string">"172.19.76.46"</span>,</div><div class="line">    <span class="string">"port"</span>: 27017,</div><div class="line">    <span class="string">"url"</span>: <span class="string">""</span>,</div><div class="line">    <span class="string">"database"</span>: <span class="string">"BIRDY2MASTER"</span>,</div><div class="line">    <span class="string">"password"</span>: <span class="string">""</span>,</div><div class="line">    <span class="string">"name"</span>: <span class="string">"db"</span>,</div><div class="line">    <span class="string">"user"</span>: <span class="string">""</span>,</div><div class="line">    <span class="string">"connector"</span>: <span class="string">"mongodb"</span></div><div class="line">  &#125;,</div><div class="line">  <span class="comment"># for cluster</span></div><div class="line">  <span class="string">"db"</span>: &#123;</div><div class="line">    <span class="string">"defaultForType"</span>: <span class="string">"mongodb"</span>,</div><div class="line">    <span class="string">"connector"</span>: <span class="string">"loopback-connector-mongodb"</span>,</div><div class="line">     <span class="comment"># change to cluster plan</span></div><div class="line">    <span class="string">"url"</span>: <span class="string">"mongodb://admin:YourPass@10.0.24.228:27017/BIRDY2MASTER"</span></div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="實際運行結果"><a href="#實際運行結果" class="headerlink" title="實際運行結果"></a>實際運行結果</h2><h3 id="1-MongoDB-HA-當-Primary-掛掉的情形"><a href="#1-MongoDB-HA-當-Primary-掛掉的情形" class="headerlink" title="1. MongoDB-HA 當 Primary 掛掉的情形"></a>1. MongoDB-HA 當 Primary 掛掉的情形</h3><p><img src="https://i.imgur.com/SoaAFVA.png" alt=""></p>
+<p><strong>測試內容(A: PRIMARY, B: SECONDARY, C: SECONDARY):</strong></p>
+<ol>
+<li>將A:PRIMARY關閉服務，從B看到rs.staut()原本A的<strong>lastHeartbeatMessage</strong> 顯示 <strong>Connection refused</strong>。</li>
+<li>B和C投票表決，投票結果<strong>B上位變成新的PRIMARY</strong>，此時A的lastHeartbeatMessage 顯示Couldn’t get a connection within the time limit。</li>
+<li>A開機後重新連線上，此時<strong>stateStr</strong>角色轉變成<strong>SECONDARY</strong>。</li>
+<li>接下來會有幾秒鐘的時間，<strong>ABC都處於SECONDARY</strong>，估計是在投票選擇主從。</li>
+<li>投票結果，<strong>A重新被選為PRIMARY</strong>。</li>
+</ol>
+<h3 id="2-ReadPreference"><a href="#2-ReadPreference" class="headerlink" title="2. ReadPreference"></a>2. ReadPreference</h3><p><strong>Debug Command: mongotop, mongostat</strong><br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># 透過下面指令確認MongoDB當前讀寫狀態</span></div><div class="line">mongotop --host 10.0.24.228:27017 --username admin --password Qwer5632 --authenticationDatabase BIRDY2MASTER</div><div class="line"></div><div class="line">mongostat --host 10.0.56.121 -port 27017 --username admin --password Qwer5632 --authenticationDatabase BIRDY2MASTER</div></pre></td></tr></table></figure></p>
+<p><strong>測試內容</strong></p>
+<ol>
+<li>當ReadPreference不做任何設定時，預設值為Primary，所有的 <strong>讀寫都會在Primary上進行</strong>。</li>
+<li>當ReadPreference=secondary，在進行＊ <strong>資料讀取時只會在Secondary上進行</strong>。若是將其中一台Secondary關閉，資料讀取會切換到另外一台還存活的Secondary上。</li>
+</ol>
+<p><img src="https://i.imgur.com/aelkWhQ.png" alt=""></p>
+
+      
+    </div>
+    <footer class="entry-meta entry-footer">
+      
+	<span class="ico-folder"></span>
+    <a class="article-category-link" href="/categories/MongoDB/">MongoDB</a>
+
+      
+  <span class="ico-tags"></span>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mongodb/">mongodb</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mongodb-ha/">mongodb-ha</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/replica-set/">replica-set</a></li></ul>
+
+      
+        
+	<section id="comments" class="comment">
+	  <div id="disqus_thread">
+	  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+	  </div>
+	</section>
+
+	<script type="text/javascript">
+	var disqus_shortname = 'frankkiv';
+	(function(){
+	  var dsq = document.createElement('script');
+	  dsq.type = 'text/javascript';
+	  dsq.async = true;
+	  dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+	  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+	}());
+	(function(){
+	  var dsq = document.createElement('script');
+	  dsq.type = 'text/javascript';
+	  dsq.async = true;
+	  dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+	  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+	}());
+	</script>
+
+
+
+      
+    </footer>
+    <hr class="entry-footer-hr">
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2017/06/03/Build-Your-Own-Blog/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">用 Hexo 建立你自己的部落格</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+<!-- Table of Contents -->
+
+  <aside id="sidebar">
+    <div id="toc" class="toc-article">
+    <strong class="toc-title">Contents</strong>
+    
+      <ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#MongoDB-HA"><span class="nav-number">1.</span> <span class="nav-text">MongoDB-HA</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Architecture"><span class="nav-number">1.1.</span> <span class="nav-text">Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Deployment-Mongo-HA-on-AWS"><span class="nav-number">1.2.</span> <span class="nav-text">Deployment Mongo-HA on AWS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-建置教學"><span class="nav-number">1.2.1.</span> <span class="nav-text">1. 建置教學</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-建置完成"><span class="nav-number">1.2.2.</span> <span class="nav-text">2. 建置完成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-如何使用"><span class="nav-number">1.2.3.</span> <span class="nav-text">3. 如何使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#實際運行結果"><span class="nav-number">1.3.</span> <span class="nav-text">實際運行結果</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-MongoDB-HA-當-Primary-掛掉的情形"><span class="nav-number">1.3.1.</span> <span class="nav-text">1. MongoDB-HA 當 Primary 掛掉的情形</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-ReadPreference"><span class="nav-number">1.3.2.</span> <span class="nav-text">2. ReadPreference</span></a></li></ol></li></ol></li></ol>
+    
+    </div>
+  </aside>
+</section>
+        
+      </div>
+
+    </div>
+    <!-- <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/categories" class="mobile-nav-link">Categories</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tags</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav> -->
+    <footer id="footer" class="site-footer">
+    
+
+                <div class="clearfix container">
+                    <div class="site-info">
+                        &copy;
+                        2017
+                            健忘 x 工程師 All Rights Reserved.
+                                
+                    </div>
+                    <div class="site-credit">
+                        Theme by <a href="https://github.com/iTimeTraveler/hexo-theme-hipaper" target="_blank">hipaper</a>
+                    </div>
+                </div>
+</footer>
+
+
+<!-- min height -->
+
+<script>
+    var wrapdiv = document.getElementById("wrap");
+    var contentdiv = document.getElementById("content");
+
+    wrapdiv.style.minHeight = document.body.offsetHeight - document.getElementById("allheader").offsetHeight - document.getElementById("footer").offsetHeight + "px";
+    contentdiv.style.minHeight = document.body.offsetHeight - document.getElementById("allheader").offsetHeight - document.getElementById("footer").offsetHeight + "px";
+
+
+    <!-- headerblur min height -->
+    
+</script>
+    
+<div style="display: none;">
+  <script src="https://s11.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+</div>
+
+<!-- mathjax config similar to math.stackexchange -->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+<script src="/js/bootstrap.js"></script>
+<script src="/js/main.js"></script>
+
+
+
+
+
+
+
+  <div style="display: none;">
+    <script src="https://s95.cnzz.com/z_stat.php?id=1260716016&web_id=1260716016" language="JavaScript"></script>
+  </div>
+
+
+
+
+
+
+
+
+  </div>
+
+  <a id="rocket" href="#top" class=""></a>
+  <script type="text/javascript" src="/js/totop.js" async=""></script>
+</body>
+</html>
